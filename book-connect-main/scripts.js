@@ -11,8 +11,8 @@ let page = 1;
 let extracted = books.slice(0, BOOKS_PER_PAGE)
 
 
- if (!books && !Array.isArray(books)) {throw new Error('Source required')} 
- if (!range && range.length < 2){ throw new Error('Range must be an array with two numbers')}
+//  if (!books && !Array.isArray(books)) {throw new Error('Source required')} 
+//  if (!range && range.length < 2){ throw new Error('Range must be an array with two numbers')}
 
 const createPreview = (props) => {
     const {author, id, image, title} = props
@@ -330,6 +330,3 @@ for (const preview of previewArray) {
 //     window.scrollTo({ top: 0, behavior: 'smooth' });
 //     data-search-overlay.open = false
 // }
-
-
-
