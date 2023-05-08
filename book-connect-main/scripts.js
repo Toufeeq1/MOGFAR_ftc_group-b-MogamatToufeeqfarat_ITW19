@@ -1,18 +1,26 @@
- /********************************* used for making books show *********************/
+ /*
+ * used for making books show 
+ */
 
 
  import { books, genres, authors, BOOKS_PER_PAGE } from "./data.js";
 
 const matches = books
-//
+
 let page = 1;
 
  const fragment = document.createDocumentFragment()
 let extracted = books.slice(0, BOOKS_PER_PAGE)
 
 
-//  if (!books && !Array.isArray(books)) {throw new Error('Source required')} 
-//  if (!range && range.length < 2){ throw new Error('Range must be an array with two numbers')}
+  if (!books && !Array.isArray(books)) {
+    throw new Error('Source required')
+} 
+
+
+  if (!matches && matches.length < 2){ 
+    throw new Error('Range must be an array with two numbers')
+}
 
 const createPreview = (props) => {
     const {author, id, image, title} = props
@@ -41,12 +49,13 @@ for (const booksIndex of extracted) {
 }
 
 document.querySelector("[data-list-items]").appendChild(fragment);
-/************************************************************************************** */
 
 
 
 
-/******************************* genres selection in search ****************************************/
+/**
+ * genres selection in search 
+ * ****************************************/
 
 const genresFragment = document.createDocumentFragment()
 const genresOption = document.createElement('option')
@@ -142,7 +151,12 @@ settingsButton.addEventListener('click', showSettings)
 
 
 /************************************** it addeds the show more  button ***************************/
-
+/*this code handles the event triggered by clicking a "Show more" button.
+ It increments the page number, calculates the range of books to be displayed,
+  and updates the extracted array. If there are remaining books, it generates 
+  preview elements for each book, appends them to the document fragment, and 
+  attaches event listeners to the preview elements. Finally, it updates the content of the showmoreButton
+*/
 const showMore = (event) => {
     event.preventDefault()
     page += 1
@@ -183,23 +197,18 @@ showmoreButton.addEventListener("click", showMore)
 
 
 
-/********************** **********************************************/
-/*this code handles the event triggered by clicking a "Show more" button.
- It increments the page number, calculates the range of books to be displayed,
-  and updates the extracted array. If there are remaining books, it generates 
-  preview elements for each book, appends them to the document fragment, and 
-  attaches event listeners to the preview elements. Finally, it updates the content of the showmoreButton
-*/
+/********************** this is so that the search items button works **********************************************/
+
 
 const optionsButton = document.querySelector('[data-header-search]')
 const optionsMenu = document.querySelector('[data-search-overlay]')
 const optionsCancel = document.querySelector('[data-search-cancel]')
 
-const showOptionsMenu = (event) => {
+const showOptionsMenu = (event) => { // event listerner for formsubmit
     event.preventDefault()
     optionsMenu.showModal()
 
-    optionsCancel.addEventListener('click', () => {
+    optionsCancel.addEventListener('click', () => {  // event
         optionsMenu.close()
     })
 }
@@ -209,39 +218,115 @@ optionsButton.addEventListener('click', showOptionsMenu)
 const datasearchButton = document.querySelector('[data-search-overlay] [type="submit"]')
 const searchData = document.querySelector('[data-search-form]')
 
-const filter = (event) => { 
+
+searchData.addEventListener('submit', (event) => {
     event.preventDefault()
-    const formData = new FormData(searchData)
+    const formData = new FormData(event.target)
     const filters = Object.fromEntries(formData)
-    console.log(filters);
     const result = []
-
+    
+    /**
+     * The for loop checks if any of the filters matches with the books and 
+     * if its true the book gets pushed to the result array .
+     */
     for (const book of books) {
-        const titleMatch = filters.title.trim() && book.title.toLowerCase().includes(filters.title.toLowerCase())
-        let authorMatch = true
-        let genreMatch = true
-
-        if (filters.author !== 'any') {
-            authorMatch = books.author === filters.author
+        const titleMatch = filters.title.trim() !== '' && book.title.toLowerCase().includes(filters.title.toLowerCase())
+        const genreMatch = filters.genre !== 'any' && book.genres.includes(filters.genre)
+        const authorMatch = filters.author !== 'any' && book.author.includes(filters.author)
+  
+        if (titleMatch || authorMatch || genreMatch) {
+            result.push(book)
         }
+    }
+    const dataListItems = document.querySelector('[data-list-itme]')
+    const dataListButton = document.querySelector('[data-list-button]')
+    const dataListMessage = document.querySelector('[data-list-messege]')
+    const dataSearchForm = document.querySelector('[data-search-form]')
 
-        if (filters.genre !== 'any') {
-            for (const singleGenre of book.genres) {
-                genreMatch = singleGenre === filters.genre
+    let page = 1
+    /**
+     * This if statement checks the result array and the result length is equal to 0 none 
+     * of the books will be displayed and the "Show More" button will be disabled. Else if 
+     * the result length is not equal to 0, the list of previews are created and displayed
+     * on the page.
+     */
+    if (result.length === 0) {
+        dataListItems.innerHTML = ''
+        dataListButton.disabled = true 
+        dataListMessage.classList.add('list__message_show')
+
+        const remaining = result.length - page * BOOKS_PER_PAGE;
+        dataListButton.innerHTML = /* HTML */ `
+            <span>Show more</span>
+            <span class="list__remaining"> (${remaining > 0 ? remaining : 0})</span>
+        `;
+    } else {
+        dataListMessage.classList.remove('list__message_show')
+        dataListItems.innerHTML = ''
+
+        const searchStartIndex = (page - 1) * BOOKS_PER_PAGE
+        const searchEndIndex = searchStartIndex + BOOKS_PER_PAGE
+
+        const searchBookFragment = document.createDocumentFragment()
+        const searchBookExtracted = result.slice(searchStartIndex, searchEndIndex)
+
+        /**
+        * This loop iterates over the book previews to display on the current page, 
+        * creates a book preview button using the createPreview function, and 
+        * appends the button to the bookFragment container
+        */
+        for (const preview of searchBookExtracted) {
+            const showPreview = createPreview(preview)
+            searchBookFragment.appendChild(showPreview)
+        }
+        
+        dataListItems.appendChild(searchBookFragment)
+        
+        const remaining = result.length - page * BOOKS_PER_PAGE;
+        dataListButton.innerHTML = /* HTML */ `
+        <span>Show more</span>
+        <span class="list__remaining"> (${remaining > 0 ? remaining : 0})</span>
+        `;
+
+        dataListButton.disabled = remaining <= 0;
+
+        /**
+         * This sets up a click event listener for the "Show More" button. When clicked, 
+         * the code executes the logic to display the next set of book previews.
+         */
+        dataListButton.addEventListener('click', () => {
+            page++;
+        
+            const moreSearchStartIndex = (page - 1) * BOOKS_PER_PAGE
+            const moreSearchEndIndex = moreSearchStartIndex + BOOKS_PER_PAGE
+        
+            const moreSearchBookExtracted = result.slice(moreSearchStartIndex, moreSearchEndIndex)
+        
+            const moreSearchBookFragment = document.createDocumentFragment()
+        
+            for (const preview of moreSearchBookExtracted) {
+                const showPreview = createPreview(preview)
+                moreSearchBookFragment.appendChild(showPreview)
             }
-        }
 
-        console.log(`
-        titleMatch ${titleMatch}
-        authorMatch ${authorMatch}
-        genreMatch ${genreMatch}
-        `);
+            dataListItems.appendChild(moreSearchBookFragment);
+        
+            const remaining = result.length - page * BOOKS_PER_PAGE;
+            dataListButton.innerHTML = /* HTML */ `
+              <span>Show more</span>
+              <span class="list__remaining"> (${remaining > 0 ? remaining : 0})</span>
+            `;
+        
+            dataListButton.disabled = remaining <= 0;
+        })
     }
 
-    optionsMenu.close()
-}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
-datasearchButton.addEventListener('click', filter)
+datasearchButton.close()
+    dataSearchForm.reset()
+})
+
 /*****************************************************  ********************************************/
 
 
