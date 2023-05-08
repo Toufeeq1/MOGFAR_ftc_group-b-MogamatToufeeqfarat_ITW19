@@ -63,10 +63,10 @@ genresOption.value = 'any'
 genresOption.innerText = 'All Genres'
 genresFragment.appendChild(genresOption)
 
-for (const genre in genres) {
+for (const [id] of Object.entries(genres)) {
     const genresOption = document.createElement('option')
-    genresOption.value = genres[genre]
-    genresOption.innerText = genres[genre]
+    genresOption.value = id
+    genresOption.innerText = genres[id]
     genresFragment.appendChild(genresOption)
 }
 
@@ -216,10 +216,10 @@ const showOptionsMenu = (event) => { // event listerner for formsubmit
 optionsButton.addEventListener('click', showOptionsMenu)
 
 const datasearchButton = document.querySelector('[data-search-overlay] [type="submit"]')
-const searchData = document.querySelector('[data-search-form]')
+const dataSearchForm = document.querySelector('[data-search-form]')
 
 
-searchData.addEventListener('submit', (event) => {
+dataSearchForm.addEventListener('submit', (event) => {
     event.preventDefault()
     const formData = new FormData(event.target)
     const filters = Object.fromEntries(formData)
@@ -238,10 +238,10 @@ searchData.addEventListener('submit', (event) => {
             result.push(book)
         }
     }
-    const dataListItems = document.querySelector('[data-list-itme]')
+    const dataListItems = document.querySelector('[data-list-items]')
     const dataListButton = document.querySelector('[data-list-button]')
-    const dataListMessage = document.querySelector('[data-list-messege]')
-    const dataSearchForm = document.querySelector('[data-search-form]')
+    const dataListMessage = document.querySelector('[data-list-message]')
+    
 
     let page = 1
     /**
@@ -252,7 +252,7 @@ searchData.addEventListener('submit', (event) => {
      */
     if (result.length === 0) {
         dataListItems.innerHTML = ''
-        dataListButton.disabled = true 
+        showmoreButton.disabled = true 
         dataListMessage.classList.add('list__message_show')
 
         const remaining = result.length - page * BOOKS_PER_PAGE;
@@ -324,6 +324,7 @@ searchData.addEventListener('submit', (event) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
 datasearchButton.close()
+alert('button was clicked')
     dataSearchForm.reset()
 })
 
