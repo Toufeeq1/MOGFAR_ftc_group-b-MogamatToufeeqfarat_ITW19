@@ -325,6 +325,7 @@ dataSearchForm.addEventListener("submit", (event) => {
 //   alert("button was clicked");
 
   optionsMenu.close();
+  dataSearchForm.reset();
 });
 
 /*****************************************************  ********************************************/
